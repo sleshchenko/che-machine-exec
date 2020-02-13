@@ -20,6 +20,7 @@ import (
 	"k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
+	"time"
 )
 
 const (
@@ -100,11 +101,25 @@ func (exec *KubernetesInfoExec) Start() (err error) {
 		return err
 	}
 
-	err = executor.Stream(remotecommand.StreamOptions{
-		Stdout: exec.stdOut,
-		Stderr: exec.stdErr,
-		Tty:    false,
-	})
+	streamEndC := make(chan error, 1)
+	go func() {
+		streamEndC <- executor.Stream(remotecommand.StreamOptions{
+			Stdout: exec.stdOut,
+			Stderr: exec.stdErr,
+		})
+	}()
+
+	select {
+	case err = <-streamEndC:
+		break
+	case <-time.After(200 * time.Millisecond):
+		if len(exec.stdErr.Bytes()) != 0 {
+			return errors.New(string(exec.stdErr.Bytes()))
+		}
+		//sh is successfully initialized but process hangs
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
