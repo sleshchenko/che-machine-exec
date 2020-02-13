@@ -92,6 +92,8 @@ func (manager *KubernetesExecManager) Create(machineExec *model.MachineExec) (ex
 		if err != nil {
 			return -1, err
 		}
+		//TODO collect all error and propagate them to figure out the cause of https://github.com/eclipse/che/issues/15870
+		//errorsArr []err
 		for _, containerInfo := range containersInfo {
 			err = manager.doCreate(machineExec, containerInfo)
 			if err != nil {
