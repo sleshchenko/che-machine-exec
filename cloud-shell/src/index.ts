@@ -68,18 +68,18 @@ rpcConnecton.create().then(connection => {
             }
         }, 
         (onRejected: any) => {
-            terminal.sendLine(CS.RED_COLOR + 'Unable to connect to json-rpc channel. Cause: ' + onRejected + CS.RESET_COLOR)
+            terminal.sendText(CS.RED_COLOR + 'Unable to connect to json-rpc channel. Cause: ' + onRejected.toString().replace("\n", "\r\n") + CS.RESET_COLOR)
         });
     });
     const exitNotification = new NotificationType<ExecExitEvent, void>(EXIT_METHOD);
     connection.onNotification(exitNotification, (event: ExecExitEvent) => {
-        terminal.sendLine(CS.GREEN_COLOR + "Process completed." + CS.RESET_COLOR)
+        terminal.sendText(CS.GREEN_COLOR + "Process completed." + CS.RESET_COLOR)
     });
 
     const errorNotification = new NotificationType<ExecErrorEvent, void>(ERROR_METHOD);
     connection.onNotification(errorNotification, (event: ExecErrorEvent) => {
-        terminal.sendLine(CS.RED_COLOR + 'Failed to create terminal. Error: ' + event.stack + CS.RESET_COLOR)
+        terminal.sendText(CS.RED_COLOR + 'Failed to create terminal. Error: ' + event.stack + CS.RESET_COLOR)
     });
 }).catch(err => {
-    terminal.sendLine(CS.RED_COLOR + 'Connection closed. Error: ' + err + CS.RESET_COLOR)
+    terminal.sendText(CS.RED_COLOR + 'Connection closed. Error: ' + err + CS.RESET_COLOR)
 });
