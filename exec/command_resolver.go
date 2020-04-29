@@ -98,6 +98,25 @@ func (cmdRslv *CmdResolver) setUpExecShellPath(exec model.MachineExec, container
 		return "", err
 	}
 
+	cmdRslv.injectToken(exec, containerInfo)
+	return shell.DefaultShell, nil
+}
+
+func (cmdRslv *CmdResolver) injectToken(exec model.MachineExec, containerInfo *model.ContainerInfo) (shellPath string, err error) {
+	logrus.Debugf("Creating /tmp/.kube in %s/%s", containerInfo.PodName, containerInfo.ContainerName)
+	infoExec := cmdRslv.CreateInfoExec([]string{"sh", "-c", "mkdir -p /tmp/.kube"}, containerInfo)
+	if err := infoExec.Start(); err != nil {
+		logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+		return "", err
+	}
+
+	logrus.Debugf("Writing token in /tmp/.kube/token in %s/%s", containerInfo.PodName, containerInfo.ContainerName)
+	infoExec = cmdRslv.CreateInfoExec([]string{"sh" , "-c", "echo " + exec.BearerToken + " > /tmp/.kube/token"}, containerInfo)
+	if err := infoExec.Start(); err != nil {
+		logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+		return "", err
+	}
+
 	return shell.DefaultShell, nil
 }
 
