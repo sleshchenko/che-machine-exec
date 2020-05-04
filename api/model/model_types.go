@@ -20,6 +20,8 @@ import (
 )
 
 const (
+	BEARER_TOKEN_HEADER = "X-Forwarded-Access-Token"
+
 	BufferSize = 8192
 
 	// method names to send events with information about exec to the clients.

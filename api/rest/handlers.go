@@ -13,6 +13,7 @@
 package rest
 
 import (
+	"github.com/eclipse/che-machine-exec/api/model"
 	"net/http"
 
 	"github.com/eclipse/che-machine-exec/exec"
@@ -24,22 +25,28 @@ var (
 	execManager = exec.GetExecManager()
 )
 
-func HandleKubeConfig(request *http.Request, response gin.ResponseWriter) {
-	token := request.Header.Get("X-Forwarded-Access-Token")
+func HandleKubeConfig(c *gin.Context) {
+	token := c.Request.Header.Get(model.BEARER_TOKEN_HEADER)
 	if token == "" {
-		response.WriteHeader(http.StatusUnauthorized)
-		_, err := response.Write([]byte("Authorization token must not be empty"))
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		_, err := c.Writer.Write([]byte("Authorization token must not be empty"))
 		if err != nil {
 			logrus.Error("Failed to write error response", err)
 		}
 	}
 
-	err := execManager.CreateKubeConfig(token)
+	container, ok := c.Params.Get("container")
+	if !ok {
+		//TODO Error
+		return
+	}
+
+	err := execManager.CreateKubeConfig(container, token)
 
 	if err != nil {
 		logrus.Errorf("Unable to create kubeconfig. Cause: %s", err.Error())
-		response.WriteHeader(http.StatusInternalServerError)
-		_, err := response.Write([]byte(err.Error()))
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		_, err := c.Writer.Write([]byte(err.Error()))
 		if err != nil {
 			logrus.Error("Failed to write error response", err)
 		}
