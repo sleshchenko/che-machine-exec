@@ -42,7 +42,7 @@ type ExecManager interface {
 	Resize(id int, cols uint, rows uint) error
 
 	// Create a kubeconfig
-	CreateKubeConfig(token string) error
+	CreateKubeConfig(container, token string) error
 }
 
 // CreateExecManager creates and returns new instance ExecManager.

@@ -46,8 +46,7 @@ func main() {
 		var token string
 
 		if cfg.UseBearerToken {
-			token = c.Request.Header.Get("X-Forwarded-Access-Token")
-
+			token = c.Request.Header.Get(model.BEARER_TOKEN_HEADER)
 		}
 
 		conn, err := jsonrpcws.Upgrade(c.Writer, c.Request)
@@ -76,9 +75,9 @@ func main() {
 		}
 	})
 
-	r.GET("/exec/config", func(c *gin.Context) {
+	r.GET("/exec/config/", func(c *gin.Context) {
 		logrus.Infof("handling /exec/config")
-		rest.HandleKubeConfig(c.Request, c.Writer)
+		rest.HandleKubeConfig(c)
 	})
 
 	// create json-rpc routs group

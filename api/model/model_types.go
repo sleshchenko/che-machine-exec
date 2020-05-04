@@ -20,6 +20,8 @@ import (
 )
 
 const (
+	BEARER_TOKEN_HEADER = "X-Forwarded-Access-Token"
+
 	BufferSize = 8192
 
 	// method names to send events with information about exec to the clients.
@@ -34,6 +36,13 @@ type MachineIdentifier struct {
 type ContainerInfo struct {
 	ContainerName string
 	PodName       string
+}
+
+type KubeConfigParams struct {
+	//required
+	ContainerName string `json:"value" binding:"required"`
+	//optional. Use developer if empty
+	Username string	      `json:"value" binding:"omitempty"`
 }
 
 // Todo code Refactoring: MachineExec should be simple object for exec creation, without any business logic

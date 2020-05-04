@@ -236,7 +236,7 @@ func (*KubernetesExecManager) Resize(id int, cols uint, rows uint) error {
 	return nil
 }
 
-func (manager *KubernetesExecManager) CreateKubeConfig(token string) error {
+func (manager *KubernetesExecManager) CreateKubeConfig(container string, token string) error {
 	machineExec := &model.MachineExec{
 		BearerToken: token,
 	}
@@ -256,23 +256,17 @@ func (manager *KubernetesExecManager) CreateKubeConfig(token string) error {
 		return errors.New("no containers found to exec")
 	}
 
-	errs := make(map[string]error)
 	for _, containerInfo := range containersInfo {
-
-		cmdResolver := NewCmdResolver(k8sAPI, manager.namespace)
-		_, err := cmdResolver.ResolveCmd(*machineExec, containerInfo)
-		if err != nil {
-			errs[containerInfo.ContainerName] = err
-			continue
+		if containerInfo.ContainerName == container {
+			infoExecCreator := exec_info.NewKubernetesInfoExecCreator(namespace, k8sAPI.GetClient().Core(), k8sAPI.GetConfig())
+			err = kubeconfig.CreateKubeConfig(infoExecCreator, GetNamespace(), token, containerInfo)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
-
-		err = kubeconfig.CreateKubeConfig(cmdResolver.InfoExecCreator, GetNamespace(), token, containerInfo)
-		if err != nil {
-			return err
-		}
-		return nil
 	}
-	return nil
+	return errors.New(fmt.Sprintf("No container with name %s found", container))
 }
 
 // getByID return exec by id.
