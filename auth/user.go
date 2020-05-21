@@ -14,11 +14,10 @@ package auth
 
 import (
 	"errors"
+	"github.com/eclipse/che-machine-exec/client"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
-	k8sRest "k8s.io/client-go/rest"
 )
 
 var (
@@ -30,32 +29,16 @@ var (
 )
 
 func getCurrentUserID(token string) (string, error) {
-	client, err := newDynamicForToken(token)
+	c, err := client.NewDynamicForToken(token)
 	if err != nil {
 		return "", err
 	}
 
-	userInfo, err := client.Resource(UserGroupVersionResource).Get("~", metav1.GetOptions{})
+	userInfo, err := c.Resource(UserGroupVersionResource).Get("~", metav1.GetOptions{})
 	if err != nil {
 		return "", errors.New("Failed to retrieve the current user info. Cause: " + err.Error())
 	}
 
 	logrus.Debugf("Current user info %s, %s", userInfo.GetUID(), userInfo.GetName())
 	return string(userInfo.GetUID()), nil
-}
-
-func newDynamicForToken(token string) (dynamic.Interface, error) {
-	config, err := k8sRest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	config.BearerTokenFile = ""
-	config.BearerToken = token
-
-	client, err := dynamic.NewForConfig(dynamic.ConfigFor(config))
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
 }

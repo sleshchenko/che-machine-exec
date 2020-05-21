@@ -14,7 +14,7 @@ package client
 
 import (
 	"errors"
-	"github.com/eclipse/che-machine-exec/auth"
+	"github.com/eclipse/che-machine-exec/cfg"
 
 	"github.com/eclipse/che-machine-exec/api/model"
 	"github.com/sirupsen/logrus"
@@ -95,7 +95,7 @@ func (clientProvider *K8sAPIProvider) getK8sAPIWithBearerToken(token string) (*K
 
 // GetK8sAPI return k8s api object.
 func (clientProvider *K8sAPIProvider) GetK8sAPI(machineExec *model.MachineExec) (*K8sAPI, error) {
-	if auth.IsEnabled() {
+	if cfg.UseBearerToken {
 		logrus.Debug("Create k8s api object with bearer token")
 		return clientProvider.getK8sAPIWithBearerToken(machineExec.BearerToken)
 	}
