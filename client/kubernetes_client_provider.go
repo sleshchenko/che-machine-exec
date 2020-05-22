@@ -83,6 +83,7 @@ func (clientProvider *K8sAPIProvider) getK8sAPIWithBearerToken(token string) (*K
 	}
 
 	config.BearerToken = token
+	config.BearerTokenFile = ""
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {

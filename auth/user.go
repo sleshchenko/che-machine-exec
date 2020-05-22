@@ -22,26 +22,20 @@ import (
 )
 
 var (
-	UserAPIResource = &metav1.APIResource{
+	UserGroupVersionResource = schema.GroupVersionResource{
 		Group:    "user.openshift.io",
 		Version:  "v1",
-		Name: "users",
-		Namespaced: false,
-	}
-
-	UserGroupVersion = &schema.GroupVersion{
-		Group:    "user.openshift.io",
-		Version:  "v1",
+		Resource: "users",
 	}
 )
 
 func getCurrentUserID(token string) (string, error) {
-	client, err := newDynamicForUsersWithToken(token)
+	client, err := newDynamicForToken(token)
 	if err != nil {
 		return "", err
 	}
 
-	userInfo, err := client.Resource(UserAPIResource, "").Get("~", metav1.GetOptions{})
+	userInfo, err := client.Resource(UserGroupVersionResource).Get("~", metav1.GetOptions{})
 	if err != nil {
 		return "", errors.New("Failed to retrieve the current user info. Cause: " + err.Error())
 	}
@@ -50,17 +44,16 @@ func getCurrentUserID(token string) (string, error) {
 	return string(userInfo.GetUID()), nil
 }
 
-func newDynamicForUsersWithToken(token string) (dynamic.Interface, error) {
+func newDynamicForToken(token string) (dynamic.Interface, error) {
 	config, err := k8sRest.InClusterConfig()
 	if err != nil {
 		return nil, err
 	}
 
+	config.BearerTokenFile = ""
 	config.BearerToken = token
-	config.GroupVersion = UserGroupVersion
-	config.APIPath = "apis"
 
-	client, err := dynamic.NewClient(config)
+	client, err := dynamic.NewForConfig(dynamic.ConfigFor(config))
 	if err != nil {
 		return nil, err
 	}
