@@ -341,7 +341,7 @@ func (manager *KubernetesExecManager) CreateKubeConfig(initConfigParams *model.I
 	for _, containerInfo := range containersInfo {
 		if containerInfo.ContainerName == initConfigParams.ContainerName || initConfigParams.ContainerName == "" {
 			currentNamespace := GetNamespace()
-			infoExecCreator := exec_info.NewKubernetesInfoExecCreator(currentNamespace, k8sAPI.GetClient().Core(), k8sAPI.GetConfig())
+			infoExecCreator := exec_info.NewKubernetesInfoExecCreator(currentNamespace, k8sAPI.GetClient().CoreV1(), k8sAPI.GetConfig())
 
 			if initConfigParams.Namespace == "" {
 				initConfigParams.Namespace = currentNamespace
