@@ -13,6 +13,7 @@
 package filter
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -108,7 +109,7 @@ func (filter *KubernetesContainerFilter) getWorkspacePods() (*v1.PodList, error)
 	}
 
 	filterOptions := metav1.ListOptions{LabelSelector: WsIdLabel + "=" + workspaceID, FieldSelector: "status.phase=Running"}
-	wsPods, err := filter.podGetterApi.Pods(filter.namespace).List(filterOptions)
+	wsPods, err := filter.podGetterApi.Pods(filter.namespace).List(context.TODO(), filterOptions)
 	if err != nil {
 		return nil, err
 	}
