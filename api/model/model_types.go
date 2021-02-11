@@ -32,14 +32,13 @@ type MachineIdentifier struct {
 }
 
 type ContainerInfo struct {
-	ContainerName string
-	PodName       string
+	ContainerName string   `json:"container"`
+	PodName       string   `json:"pod"`
 }
 
 //ResolvedExec holds info client might send to create exec
 type ResolvedExec struct {
-	PodName       string   `json:"pod"`
-	ContainerName string   `json:"container"`
+	ContainerInfo
 	Cmd           []string `json:"cmd"`
 }
 
